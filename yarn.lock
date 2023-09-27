@@ -654,10 +654,10 @@
     ethers "^5.7.2"
     tslib "^2.3.0"
 
-"@futureverse/react@0.0.1-pre.52":
-  version "0.0.1-pre.52"
-  resolved "https://registry.yarnpkg.com/@futureverse/react/-/react-0.0.1-pre.52.tgz#00dc56f00e9607ebfc1cb55717064eb453a60fd0"
-  integrity sha512-/IF/hIa0caetae6FQ4FvBGHxESbfI37xg8DBFoZ6SUsm4dF9V1wbqHo7HbB5Ls+Itf7kHOD2hpTB850D9MTRJw==
+"@futureverse/react@0.0.1-pre.53":
+  version "0.0.1-pre.53"
+  resolved "https://registry.yarnpkg.com/@futureverse/react/-/react-0.0.1-pre.53.tgz#02dbbdedbe1f1470ad956700c8aec76c99d1da43"
+  integrity sha512-QxVwohxebnGm+Y/yBG25D1j7dPSAS3QFC3dlRfTQ5Nl1Zn/z+JJVVyfJTybbkUtU/g8sIcTmjNxvXtXqBeDObQ==
   dependencies:
     "@apollo/client" "^3.7.11"
     "@ethersproject/providers" "^5.7.2"

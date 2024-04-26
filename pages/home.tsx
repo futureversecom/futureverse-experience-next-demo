@@ -1,7 +1,8 @@
-import { useFutureverse } from '@futureverse/react';
+import { useFutureverse, deriveAddressFromPublicKey } from '@futureverse/react';
+
 import { Inter } from 'next/font/google';
 import * as wagmi from 'wagmi';
-
+import * as React from 'react';
 const inter = Inter({ subsets: ['latin'] });
 
 export default function Home() {
@@ -16,6 +17,17 @@ export default function Home() {
   });
   const { data: signer } = wagmi.useSigner();
   console.log(signer);
+
+  const userRAddress = React.useMemo(() => {
+    const publicKeyInSub = userSession?.user?.profile.sub.split(':')[1];
+    if (publicKeyInSub) {
+      return deriveAddressFromPublicKey(publicKeyInSub, 'xrpl');
+    }
+
+    return null;
+  }, [userSession?.user?.profile.sub]);
+  console.log(userSession?.user?.profile.sub, userRAddress);
+
   return (
     <main
       className={`flex min-h-screen flex-col items-center justify-between p-24 ${inter.className}`}
@@ -34,9 +46,7 @@ export default function Home() {
           <p>User EOA: {userSession.eoa}</p>
           <p>User Chain ID: {userSession.chainId}</p>
           <p>User Balance: {ethBalance.data?.formatted ?? 'loading'} ETH</p>
-          <p>
-            User Balance: {xrpBalanceOnTrn.data?.formatted ?? 'loading'} ETH
-          </p>
+          <p>User r-Address: {userRAddress}</p>
           <p>Signer: {signer?._isSigner ? `is available` : 'is undefined'}</p>
           <button
             onClick={() => {

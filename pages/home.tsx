@@ -5,10 +5,11 @@ import {
 } from "@futureverse/react";
 import { ApiPromise } from "@polkadot/api";
 import { Inter } from "next/font/google";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import * as wagmi from "wagmi";
 import * as fvSdk from "@futureverse/experience-sdk";
 import { BigNumber } from "ethers";
+import { useTrnExtrinsic } from "@/hooks";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -17,7 +18,30 @@ export default function Home() {
   const { data: futurepass } = useFuturePassAccountAddress();
 
   const balances = useBalances();
+  const { trnApi } = useTrnApi();
   const { data: signer } = wagmi.useSigner();
+
+  const { signAndSubmitStep, submitExtrinsic, estimatedFee } = useTrnExtrinsic({
+    senderAddress: userSession?.eoa,
+    extrinsic: trnApi
+      ? trnApi.tx.system.remark("Hello, Futureverse!")
+      : undefined,
+  });
+
+  const [extrinsicResult, setExtrinsicResult] = useState<{
+    error?: string;
+    extrinsicId?: string;
+  }>();
+
+  const onSubmitClick = useCallback(async () => {
+    try {
+      const result = await submitExtrinsic();
+
+      setExtrinsicResult({ extrinsicId: result.extrinsicId });
+    } catch (err: any) {
+      setExtrinsicResult({ error: err.message });
+    }
+  }, [submitExtrinsic]);
 
   return (
     <main
@@ -33,48 +57,81 @@ export default function Home() {
           Log In
         </button>
       ) : (
-        <div>
-          <p>User EOA: {userSession.eoa}</p>
-          <p>User FuturePass: {futurepass}</p>
-          <p>User Chain ID: {userSession.chainId}</p>
-          <p>
-            User Balance:{" "}
-            {balances?.root
-              ? fvSdk.renderCryptoAmount(
+        <div className="flex flex-col space-y-12">
+          <div className="flex flex-col space-y-4">
+            {extrinsicResult?.error && (
+              <p>Extrinsic error: {extrinsicResult.error}</p>
+            )}
+            {extrinsicResult?.extrinsicId && (
+              <p>Extrinsic ID: {extrinsicResult.extrinsicId}</p>
+            )}
+
+            {!extrinsicResult && signAndSubmitStep && (
+              <p>Sign and Submit step: {signAndSubmitStep}</p>
+            )}
+
+            {estimatedFee && (
+              <p>
+                Estimated fee:{" "}
+                {fvSdk.renderCryptoAmount(
                   {
-                    value: balances.root,
-                    symbol: "ROOT",
-                    decimals: 6,
-                  },
-                  { withSymbol: true }
-                )
-              : "loading"}
-          </p>
-          <p>
-            User Balance:{" "}
-            {balances?.xrp
-              ? fvSdk.renderCryptoAmount(
-                  {
-                    value: balances.xrp,
+                    value: estimatedFee,
                     symbol: "XRP",
                     decimals: 6,
                   },
                   { withSymbol: true }
-                )
-              : "loading"}
-          </p>
-          <p>Signer: {signer?._isSigner ? `is available` : "is undefined"}</p>
-          <button
-            style={{
-              border: "1px solid white",
-              padding: "2px 4px",
-            }}
-            onClick={() => {
-              logout();
-            }}
-          >
-            Log Out
-          </button>
+                )}
+              </p>
+            )}
+
+            <button
+              className="border border-white py-2 px-4 rounded-sm mt-2"
+              onClick={onSubmitClick}
+            >
+              Submit Extrinsic
+            </button>
+          </div>
+
+          <div>
+            <p>User EOA: {userSession.eoa}</p>
+            <p>User FuturePass: {futurepass}</p>
+            <p>User Chain ID: {userSession.chainId}</p>
+            <p>
+              User Balance:{" "}
+              {balances?.root
+                ? fvSdk.renderCryptoAmount(
+                    {
+                      value: balances.root,
+                      symbol: "ROOT",
+                      decimals: 6,
+                    },
+                    { withSymbol: true }
+                  )
+                : "loading"}
+            </p>
+            <p>
+              User Balance:{" "}
+              {balances?.xrp
+                ? fvSdk.renderCryptoAmount(
+                    {
+                      value: balances.xrp,
+                      symbol: "XRP",
+                      decimals: 6,
+                    },
+                    { withSymbol: true }
+                  )
+                : "loading"}
+            </p>
+            <p>Signer: {signer?._isSigner ? `is available` : "is undefined"}</p>
+            <button
+              className="border border-white py-2 px-4 rounded-sm mt-2"
+              onClick={() => {
+                logout();
+              }}
+            >
+              Log Out
+            </button>
+          </div>
         </div>
       )}
     </main>

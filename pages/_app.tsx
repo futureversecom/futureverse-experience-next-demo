@@ -7,6 +7,7 @@ import {
 } from "@futureverse/react";
 import type { AppProps } from "next/app";
 import dynamic from "next/dynamic";
+
 const FutureverseProvider = dynamic(
   () => import("@futureverse/react").then((mod) => mod.FutureverseProvider),
   {

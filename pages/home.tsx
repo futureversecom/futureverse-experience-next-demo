@@ -3,13 +3,11 @@ import {
   useFutureverse,
   useTrnApi,
 } from '@futureverse/react'
-import { ApiPromise } from '@polkadot/api'
 import { Inter } from 'next/font/google'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useState } from 'react'
 import * as wagmi from 'wagmi'
 import * as fvSdk from '@futureverse/experience-sdk'
-import { BigNumber } from 'ethers'
-import { useTrnExtrinsic } from '@/hooks'
+import { useTrnBalances, useTrnExtrinsic } from '@/hooks'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -17,8 +15,8 @@ export default function Home() {
   const { login, logout, userSession } = useFutureverse()
   const { data: futurepass } = useFuturePassAccountAddress()
 
-  const balances = useBalances()
   const { trnApi } = useTrnApi()
+  const trnBalances = useTrnBalances()
   const { data: signer } = wagmi.useSigner()
 
   const { signAndSubmitStep, submitExtrinsic, estimatedFee } = useTrnExtrinsic({
@@ -98,10 +96,10 @@ export default function Home() {
             <p>User Chain ID: {userSession.chainId}</p>
             <p>
               User Balance:{' '}
-              {balances?.root
+              {trnBalances?.root
                 ? fvSdk.renderCryptoAmount(
                     {
-                      value: balances.root,
+                      value: trnBalances.root,
                       symbol: 'ROOT',
                       decimals: 6,
                     },
@@ -111,10 +109,10 @@ export default function Home() {
             </p>
             <p>
               User Balance:{' '}
-              {balances?.xrp
+              {trnBalances?.xrp
                 ? fvSdk.renderCryptoAmount(
                     {
-                      value: balances.xrp,
+                      value: trnBalances.xrp,
                       symbol: 'XRP',
                       decimals: 6,
                     },
@@ -136,49 +134,4 @@ export default function Home() {
       )}
     </main>
   )
-}
-
-function useBalances() {
-  const { trnApi } = useTrnApi()
-  const { userSession } = useFutureverse()
-
-  const [balances, setBalances] = useState<{
-    root: BigNumber
-    xrp: BigNumber
-  }>()
-
-  const fetchRootBalance = async (api: ApiPromise, address: string) => {
-    const account = await api.query.system.account(address)
-
-    const { data } = account
-    const maxFrozen = data.feeFrozen.gte(data.miscFrozen)
-      ? data.feeFrozen
-      : data.miscFrozen
-
-    return BigNumber.from(data.free.sub(maxFrozen).toString())
-  }
-
-  const fetchXrpBalance = async (api: ApiPromise, address: string) => {
-    const account = await api.query.assets.account(fvSdk.XRP_ASSET_ID, address)
-
-    if (account.isNone) return BigNumber.from(0)
-
-    return BigNumber.from(account.unwrap().balance.toString())
-  }
-
-  useEffect(() => {
-    if (!trnApi || !userSession?.eoa) return
-
-    Promise.all([
-      fetchRootBalance(trnApi, userSession.eoa),
-      fetchXrpBalance(trnApi, userSession.eoa),
-    ]).then(([rootBalance, xrpBalance]) => {
-      setBalances({
-        root: rootBalance,
-        xrp: xrpBalance,
-      })
-    })
-  }, [trnApi, userSession?.eoa])
-
-  return balances
 }

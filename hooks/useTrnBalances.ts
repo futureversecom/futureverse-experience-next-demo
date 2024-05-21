@@ -24,8 +24,12 @@ export function useTrnBalances() {
     return BigNumber.from(data.free.sub(maxFrozen).toString())
   }
 
-  const fetchXrpBalance = async (api: ApiPromise, address: string) => {
-    const account = await api.query.assets.account(fvSdk.XRP_ASSET_ID, address)
+  const fetchAssetBalance = async (
+    api: ApiPromise,
+    address: string,
+    assetId = fvSdk.XRP_ASSET_ID
+  ) => {
+    const account = await api.query.assets.account(assetId, address)
 
     if (account.isNone) return BigNumber.from(0)
 
@@ -37,7 +41,7 @@ export function useTrnBalances() {
 
     Promise.all([
       fetchRootBalance(trnApi, userSession.eoa),
-      fetchXrpBalance(trnApi, userSession.eoa),
+      fetchAssetBalance(trnApi, userSession.eoa),
     ]).then(([rootBalance, xrpBalance]) => {
       setBalances({
         root: rootBalance,

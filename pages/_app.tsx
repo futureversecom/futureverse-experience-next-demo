@@ -2,10 +2,18 @@ import '@/styles/globals.css'
 import * as fvSdk from '@futureverse/experience-sdk'
 import {
   FutureverseAuthClient,
-  FutureverseProvider,
+  TrnApiProvider,
   UserState,
 } from '@futureverse/react'
 import type { AppProps } from 'next/app'
+import dynamic from 'next/dynamic'
+
+const FutureverseProvider = dynamic(
+  () => import('@futureverse/react').then(mod => mod.FutureverseProvider),
+  {
+    ssr: false,
+  }
+)
 
 // In your app, keep this as an environment variable
 const clientId = process.env.NEXT_PUBLIC_CLIENT_ID
@@ -26,7 +34,7 @@ const authClient = (() => {
         : fvSdk.ENVIRONMENTS.staging,
     redirectUri: 'http://localhost:3000/home',
   })
-  client.addUserStateListener((userState) => {
+  client.addUserStateListener(userState => {
     if (userState === UserState.SignedOut) {
       sessionStorage.setItem('fvAuthSilentLogin', 'disabled')
     }
@@ -43,12 +51,14 @@ export default function App({ Component, pageProps }: AppProps) {
 
   return (
     <FutureverseProvider
-      stage='development'
+      stage="development"
       authClient={authClient}
-      Web3Provider='wagmi'
+      Web3Provider="wagmi"
       walletConnectProjectId={walletConnectProjectId}
     >
-      <Component {...pageProps} />
+      <TrnApiProvider>
+        <Component {...pageProps} />
+      </TrnApiProvider>
     </FutureverseProvider>
   )
 }

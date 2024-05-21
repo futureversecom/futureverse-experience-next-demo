@@ -27,7 +27,12 @@ export function useSignInHandler() {
         }
         login(
           isSilent
-            ? { silent: true, targetEOA: accountAddress ?? null }
+            ? {
+                loginMethod: {
+                  type: 'silent',
+                  targetEOA: accountAddress ?? null,
+                },
+              }
             : undefined
         )
       }

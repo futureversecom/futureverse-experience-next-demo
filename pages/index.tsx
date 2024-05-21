@@ -25,7 +25,7 @@ export default function Index() {
             Log Out
           </button>
           <div>
-            <Link href='/home'>Go to Home Page</Link>
+            <Link href="/home">Go to Home Page</Link>
           </div>
         </div>
       )}

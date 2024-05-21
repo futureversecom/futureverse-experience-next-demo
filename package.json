@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "format": "prettier --write ."
   },
   "dependencies": {
     "@futureverse/component-library": "0.2.0",
@@ -36,5 +37,9 @@
     "tailwindcss": "3.3.3",
     "typescript": "5.2.2",
     "wagmi": "^0.12.16"
+  },
+  "devDependencies": {
+    "prettier": "^3.2.5",
+    "prettier-plugin-tailwindcss": "^0.5.14"
   }
 }

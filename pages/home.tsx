@@ -2,46 +2,46 @@ import {
   useFuturePassAccountAddress,
   useFutureverse,
   useTrnApi,
-} from "@futureverse/react";
-import { ApiPromise } from "@polkadot/api";
-import { Inter } from "next/font/google";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import * as wagmi from "wagmi";
-import * as fvSdk from "@futureverse/experience-sdk";
-import { BigNumber } from "ethers";
-import { useTrnExtrinsic } from "@/hooks";
+} from '@futureverse/react'
+import { ApiPromise } from '@polkadot/api'
+import { Inter } from 'next/font/google'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import * as wagmi from 'wagmi'
+import * as fvSdk from '@futureverse/experience-sdk'
+import { BigNumber } from 'ethers'
+import { useTrnExtrinsic } from '@/hooks'
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ['latin'] })
 
 export default function Home() {
-  const { login, logout, userSession } = useFutureverse();
-  const { data: futurepass } = useFuturePassAccountAddress();
+  const { login, logout, userSession } = useFutureverse()
+  const { data: futurepass } = useFuturePassAccountAddress()
 
-  const balances = useBalances();
-  const { trnApi } = useTrnApi();
-  const { data: signer } = wagmi.useSigner();
+  const balances = useBalances()
+  const { trnApi } = useTrnApi()
+  const { data: signer } = wagmi.useSigner()
 
   const { signAndSubmitStep, submitExtrinsic, estimatedFee } = useTrnExtrinsic({
     senderAddress: userSession?.eoa,
     extrinsic: trnApi
-      ? trnApi.tx.system.remark("Hello, Futureverse!")
+      ? trnApi.tx.system.remark('Hello, Futureverse!')
       : undefined,
-  });
+  })
 
   const [extrinsicResult, setExtrinsicResult] = useState<{
-    error?: string;
-    extrinsicId?: string;
-  }>();
+    error?: string
+    extrinsicId?: string
+  }>()
 
   const onSubmitClick = useCallback(async () => {
     try {
-      const result = await submitExtrinsic();
+      const result = await submitExtrinsic()
 
-      setExtrinsicResult({ extrinsicId: result.extrinsicId });
+      setExtrinsicResult({ extrinsicId: result.extrinsicId })
     } catch (err: any) {
-      setExtrinsicResult({ error: err.message });
+      setExtrinsicResult({ error: err.message })
     }
-  }, [submitExtrinsic]);
+  }, [submitExtrinsic])
 
   return (
     <main
@@ -51,7 +51,7 @@ export default function Home() {
       {userSession == null ? (
         <button
           onClick={() => {
-            login();
+            login()
           }}
         >
           Log In
@@ -72,11 +72,11 @@ export default function Home() {
 
             {estimatedFee && (
               <p>
-                Estimated fee:{" "}
+                Estimated fee:{' '}
                 {fvSdk.renderCryptoAmount(
                   {
                     value: estimatedFee,
-                    symbol: "XRP",
+                    symbol: 'XRP',
                     decimals: 6,
                   },
                   { withSymbol: true }
@@ -85,7 +85,7 @@ export default function Home() {
             )}
 
             <button
-              className="border border-white py-2 px-4 rounded-sm mt-2"
+              className="mt-2 rounded-sm border border-white px-4 py-2"
               onClick={onSubmitClick}
             >
               Submit Extrinsic
@@ -97,36 +97,36 @@ export default function Home() {
             <p>User FuturePass: {futurepass}</p>
             <p>User Chain ID: {userSession.chainId}</p>
             <p>
-              User Balance:{" "}
+              User Balance:{' '}
               {balances?.root
                 ? fvSdk.renderCryptoAmount(
                     {
                       value: balances.root,
-                      symbol: "ROOT",
+                      symbol: 'ROOT',
                       decimals: 6,
                     },
                     { withSymbol: true }
                   )
-                : "loading"}
+                : 'loading'}
             </p>
             <p>
-              User Balance:{" "}
+              User Balance:{' '}
               {balances?.xrp
                 ? fvSdk.renderCryptoAmount(
                     {
                       value: balances.xrp,
-                      symbol: "XRP",
+                      symbol: 'XRP',
                       decimals: 6,
                     },
                     { withSymbol: true }
                   )
-                : "loading"}
+                : 'loading'}
             </p>
-            <p>Signer: {signer?._isSigner ? `is available` : "is undefined"}</p>
+            <p>Signer: {signer?._isSigner ? `is available` : 'is undefined'}</p>
             <button
-              className="border border-white py-2 px-4 rounded-sm mt-2"
+              className="mt-2 rounded-sm border border-white px-4 py-2"
               onClick={() => {
-                logout();
+                logout()
               }}
             >
               Log Out
@@ -135,39 +135,39 @@ export default function Home() {
         </div>
       )}
     </main>
-  );
+  )
 }
 
 function useBalances() {
-  const { trnApi } = useTrnApi();
-  const { userSession } = useFutureverse();
+  const { trnApi } = useTrnApi()
+  const { userSession } = useFutureverse()
 
   const [balances, setBalances] = useState<{
-    root: BigNumber;
-    xrp: BigNumber;
-  }>();
+    root: BigNumber
+    xrp: BigNumber
+  }>()
 
   const fetchRootBalance = async (api: ApiPromise, address: string) => {
-    const account = await api.query.system.account(address);
+    const account = await api.query.system.account(address)
 
-    const { data } = account;
+    const { data } = account
     const maxFrozen = data.feeFrozen.gte(data.miscFrozen)
       ? data.feeFrozen
-      : data.miscFrozen;
+      : data.miscFrozen
 
-    return BigNumber.from(data.free.sub(maxFrozen).toString());
-  };
+    return BigNumber.from(data.free.sub(maxFrozen).toString())
+  }
 
   const fetchXrpBalance = async (api: ApiPromise, address: string) => {
-    const account = await api.query.assets.account(fvSdk.XRP_ASSET_ID, address);
+    const account = await api.query.assets.account(fvSdk.XRP_ASSET_ID, address)
 
-    if (account.isNone) return BigNumber.from(0);
+    if (account.isNone) return BigNumber.from(0)
 
-    return BigNumber.from(account.unwrap().balance.toString());
-  };
+    return BigNumber.from(account.unwrap().balance.toString())
+  }
 
   useEffect(() => {
-    if (!trnApi || !userSession?.eoa) return;
+    if (!trnApi || !userSession?.eoa) return
 
     Promise.all([
       fetchRootBalance(trnApi, userSession.eoa),
@@ -176,9 +176,9 @@ function useBalances() {
       setBalances({
         root: rootBalance,
         xrp: xrpBalance,
-      });
-    });
-  }, [trnApi, userSession?.eoa]);
+      })
+    })
+  }, [trnApi, userSession?.eoa])
 
-  return balances;
+  return balances
 }

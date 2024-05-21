@@ -1,53 +1,52 @@
-import "@/styles/globals.css";
-import * as fvSdk from "@futureverse/experience-sdk";
+import '@/styles/globals.css'
+import * as fvSdk from '@futureverse/experience-sdk'
 import {
   FutureverseAuthClient,
   TrnApiProvider,
   UserState,
-} from "@futureverse/react";
-import type { AppProps } from "next/app";
-import dynamic from "next/dynamic";
+} from '@futureverse/react'
+import type { AppProps } from 'next/app'
+import dynamic from 'next/dynamic'
 
 const FutureverseProvider = dynamic(
-  () => import("@futureverse/react").then((mod) => mod.FutureverseProvider),
+  () => import('@futureverse/react').then(mod => mod.FutureverseProvider),
   {
     ssr: false,
   }
-);
+)
 
 // In your app, keep this as an environment variable
-const clientId = process.env.NEXT_PUBLIC_CLIENT_ID;
-const walletConnectProjectId =
-  process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID;
+const clientId = process.env.NEXT_PUBLIC_CLIENT_ID
+const walletConnectProjectId = process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID
 
 if (clientId == null || walletConnectProjectId == null) {
   throw new Error(
-    "Invariant violation: clientId or walletConnectProjectId are not defined!"
-  );
+    'Invariant violation: clientId or walletConnectProjectId are not defined!'
+  )
 }
 
 const authClient = (() => {
   const client = new FutureverseAuthClient({
     clientId,
     environment:
-      process.env.NODE_ENV === "production"
+      process.env.NODE_ENV === 'production'
         ? fvSdk.ENVIRONMENTS.production
         : fvSdk.ENVIRONMENTS.staging,
-    redirectUri: "http://localhost:3000/home",
-  });
-  client.addUserStateListener((userState) => {
+    redirectUri: 'http://localhost:3000/home',
+  })
+  client.addUserStateListener(userState => {
     if (userState === UserState.SignedOut) {
-      sessionStorage.setItem("fvAuthSilentLogin", "disabled");
+      sessionStorage.setItem('fvAuthSilentLogin', 'disabled')
     }
-  });
-  return client;
-})();
+  })
+  return client
+})()
 
 export default function App({ Component, pageProps }: AppProps) {
   if (clientId == null || walletConnectProjectId == null) {
     throw new Error(
-      "Invariant violation: clientId or walletConnectProjectId are not defined!"
-    );
+      'Invariant violation: clientId or walletConnectProjectId are not defined!'
+    )
   }
 
   return (
@@ -61,5 +60,5 @@ export default function App({ Component, pageProps }: AppProps) {
         <Component {...pageProps} />
       </TrnApiProvider>
     </FutureverseProvider>
-  );
+  )
 }

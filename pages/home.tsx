@@ -13,17 +13,28 @@ const inter = Inter({ subsets: ['latin'] })
 
 export default function Home() {
   const { login, logout, userSession } = useFutureverse()
-  const { data: futurepass } = useFuturePassAccountAddress()
+  const { data: futurePassAccount } = useFuturePassAccountAddress()
 
   const { trnApi } = useTrnApi()
   const trnBalances = useTrnBalances()
   const { data: signer } = wagmi.useSigner()
 
+  const [payWithROOT, setPayWithROOT] = useState(false)
+  const [submitWithFuturePass, setSubmitWithFuturePass] = useState(false)
+
   const { signAndSubmitStep, submitExtrinsic, estimatedFee } = useTrnExtrinsic({
-    senderAddress: userSession?.eoa,
+    senderAddress:
+      submitWithFuturePass && futurePassAccount
+        ? futurePassAccount
+        : userSession?.eoa,
     extrinsic: trnApi
       ? trnApi.tx.system.remark('Hello, Futureverse!')
       : undefined,
+    ...(payWithROOT && {
+      feeOptions: {
+        assetId: 1,
+      },
+    }),
   })
 
   const [extrinsicResult, setExtrinsicResult] = useState<{
@@ -61,7 +72,17 @@ export default function Home() {
               <p>Extrinsic error: {extrinsicResult.error}</p>
             )}
             {extrinsicResult?.extrinsicId && (
-              <p>Extrinsic ID: {extrinsicResult.extrinsicId}</p>
+              <p>
+                Explorer URL:{' '}
+                <a
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="cursor-pointer text-blue-500 hover:underline"
+                  href={`https://porcini.rootscan.io/extrinsics/${extrinsicResult.extrinsicId}`}
+                >
+                  {extrinsicResult.extrinsicId}
+                </a>
+              </p>
             )}
 
             {!extrinsicResult && signAndSubmitStep && (
@@ -74,13 +95,33 @@ export default function Home() {
                 {fvSdk.renderCryptoAmount(
                   {
                     value: estimatedFee,
-                    symbol: 'XRP',
+                    symbol: payWithROOT ? 'ROOT' : 'XRP',
                     decimals: 6,
                   },
                   { withSymbol: true }
                 )}
               </p>
             )}
+            <div>
+              <ul className="[&>li]:flex [&>li]:cursor-pointer [&>li]:space-x-2">
+                <li onClick={() => setPayWithROOT(v => !v)}>
+                  <input
+                    type="checkbox"
+                    checked={payWithROOT}
+                    onChange={fvSdk.noOp}
+                  />
+                  <p>Pay with ROOT</p>
+                </li>
+                <li onClick={() => setSubmitWithFuturePass(v => !v)}>
+                  <input
+                    type="checkbox"
+                    checked={submitWithFuturePass}
+                    onChange={fvSdk.noOp}
+                  />
+                  <p>Submit via FuturePass account</p>
+                </li>
+              </ul>
+            </div>
 
             <button
               className="mt-2 rounded-sm border border-white px-4 py-2"
@@ -92,7 +133,7 @@ export default function Home() {
 
           <div>
             <p>User EOA: {userSession.eoa}</p>
-            <p>User FuturePass: {futurepass}</p>
+            <p>User FuturePass: {futurePassAccount}</p>
             <p>User Chain ID: {userSession.chainId}</p>
             <p>
               User Balance:{' '}

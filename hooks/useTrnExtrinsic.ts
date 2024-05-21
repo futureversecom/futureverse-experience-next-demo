@@ -11,9 +11,14 @@ import { BigNumber } from 'ethers'
 export function useTrnExtrinsic({
   senderAddress,
   extrinsic,
+  feeOptions,
 }: {
   senderAddress?: string
   extrinsic?: fvSdk.Extrinsic
+  feeOptions?: {
+    assetId: number
+    slippage?: number
+  }
 }) {
   const { createTrnDispatcher } = useTrnApi()
   const { data: futurePassAccount } = useFuturePassAccountAddress()
@@ -31,50 +36,59 @@ export function useTrnExtrinsic({
   const [estimatedFee, setEstimatedFee] = useState<BigNumber>()
 
   const dispatcher = useMemo(() => {
-    if (!futurePassAccount || !signer || !senderAddress)
-      return console.warn(
-        `Unable to create dispatcher: ${
-          !futurePassAccount
-            ? 'futurePassAccount'
-            : !signer
-              ? 'signer'
-              : 'senderAddress'
-        } was undefined`
-      )
+    try {
+      if (!futurePassAccount || !signer || !senderAddress)
+        throw new Error(
+          `${
+            !futurePassAccount
+              ? 'futurePassAccount'
+              : !signer
+                ? 'signer'
+                : 'senderAddress'
+          } was undefined`
+        )
 
-    return createTrnDispatcher({
-      wrapWithFuturePass: fvSdk.addressEquals(senderAddress, futurePassAccount),
-      feeOptions: {
-        assetId: fvSdk.XRP_ASSET_ID,
-      },
-      wagmiOptions: {
-        signer,
-      },
-      xamanOptions: {
-        signMessageCallbacks: {
-          onRejected: () => setSignAndSubmitStep(undefined),
-          onCreated: createdPayload => {
-            setXamanData({
-              qrCodeImg: createdPayload.refs.qr_png,
-              deeplink: createdPayload.next.always,
-            })
-            setSignAndSubmitStep('waitingForSignature')
+      return createTrnDispatcher({
+        wrapWithFuturePass: fvSdk.addressEquals(
+          senderAddress,
+          futurePassAccount
+        ),
+        feeOptions: {
+          assetId: feeOptions?.assetId ?? fvSdk.XRP_ASSET_ID,
+          slippage: feeOptions?.slippage ?? 0.05,
+        },
+        wagmiOptions: {
+          signer,
+        },
+        xamanOptions: {
+          signMessageCallbacks: {
+            onRejected: () => setSignAndSubmitStep(undefined),
+            onCreated: createdPayload => {
+              setXamanData({
+                qrCodeImg: createdPayload.refs.qr_png,
+                deeplink: createdPayload.next.always,
+              })
+              setSignAndSubmitStep('waitingForSignature')
+            },
           },
         },
-      },
-      onSignatureSuccess:
-        authenticationMethod === 'xaman'
-          ? () => {
-              setSignAndSubmitStep('submittingToChain')
-            }
-          : undefined,
-    })
+        onSignatureSuccess:
+          authenticationMethod === 'xaman'
+            ? () => {
+                setSignAndSubmitStep('submittingToChain')
+              }
+            : undefined,
+      })
+    } catch (err: any) {
+      console.warn('Unable to create dispatcher:', err.message)
+    }
   }, [
     authenticationMethod,
     createTrnDispatcher,
     futurePassAccount,
     senderAddress,
     signer,
+    feeOptions,
   ])
 
   const submitExtrinsic = useCallback(async () => {
@@ -101,12 +115,12 @@ export function useTrnExtrinsic({
         } was undefined`
       )
 
-    const result = await dispatcher.estimate(extrinsic)
+    const result = await dispatcher.estimate(extrinsic, feeOptions?.assetId)
     if (!result.ok)
       throw new Error(`Error estimating fee: ${result.value.cause}`)
 
     return BigNumber.from(result.value)
-  }, [dispatcher, extrinsic])
+  }, [dispatcher, extrinsic, feeOptions])
 
   useEffect(() => {
     if (!extrinsic) return

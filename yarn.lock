@@ -651,10 +651,10 @@
     clsx "^2.0.0"
     tailwind-merge "^2.0.0"
 
-"@futureverse/experience-sdk@1.0.1":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@futureverse/experience-sdk/-/experience-sdk-1.0.1.tgz#9e11165fd3e60732652f8a12435c38d08ae953f6"
-  integrity sha512-gpJ8THSaXn0DiVc2YZnTIKNKVdaXYDeBzRO7EBJSlDdWlIrYey+gTmwr/ZMINdsbnMp0L7GEbQPH4MX9kvEyNA==
+"@futureverse/experience-sdk@0.11.0-alpha.17":
+  version "0.11.0-alpha.17"
+  resolved "https://registry.yarnpkg.com/@futureverse/experience-sdk/-/experience-sdk-0.11.0-alpha.17.tgz#dc6495d4122e2b42eb3a13390484ad7e9cf92761"
+  integrity sha512-1qjpeChGHjIF9bVBmWoj/8dBbTtCIY0ebg7QOsjBmE4EyMNSiTITACAeY9fP1at3eCzRU6F/qVNpeUV424RcOw==
   dependencies:
     "@ethersproject/experimental" "5.7.0"
     "@ethersproject/providers" "5.7.2"
@@ -662,11 +662,13 @@
     "@futureverse/rpc-kit" "0.1.3"
     "@sylo/io-ts" "0.0.17"
     "@sylo/logger" "0.2.0"
-    "@therootnetwork/extrinsic" "^1.0.7"
+    "@therootnetwork/extrinsic" "^1.0.9"
+    ethers "^5.7.2"
     fp-ts "2.16.5"
     graphql "^16.8.1"
     io-ts "2.2.21"
     io-ts-reporters "2.0.1"
+    wagmi "^0.12.16"
 
 "@futureverse/identity-contract-bindings@^0.1.3":
   version "0.1.3"
@@ -1914,10 +1916,10 @@
   resolved "https://registry.yarnpkg.com/@therootnetwork/api/-/api-1.0.8.tgz#32fdf51c0e11f6a088e9d934e7d18f9659d562f3"
   integrity sha512-WhjCv+WfxmcqI+3NfLNmEvDRsbMNehcmm952C2eIJhvh/EzkmY/fsB5VVwv1+r07RF6fjSQisnVvKwp3IDVHgQ==
 
-"@therootnetwork/extrinsic@^1.0.7":
-  version "1.0.7"
-  resolved "https://registry.yarnpkg.com/@therootnetwork/extrinsic/-/extrinsic-1.0.7.tgz#4b99e036e0f5a28cb1f417e8def336929441b4dc"
-  integrity sha512-/+dBWx098wM0Cd3+Fblbz1N6mr+AVE404E4JHt+mO66/CslveRqIMBxnUg6LuZ4WLGMbBnpkzR/fknCrXNdaig==
+"@therootnetwork/extrinsic@^1.0.9":
+  version "1.0.9"
+  resolved "https://registry.yarnpkg.com/@therootnetwork/extrinsic/-/extrinsic-1.0.9.tgz#44b97f114172db09747cb449469d299f524e5078"
+  integrity sha512-UnbCoukc87XA/U3QNOfalwF+QiOyAlZUPMVMc3UW7JUW0tq8WU71ig8TowYzNNsqGuMY6MmLXJ3YmHlcCI05qA==
   dependencies:
     "@ethersproject/signing-key" "^5.7.0"
     codechain-primitives "^1.0.4"

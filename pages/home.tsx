@@ -1,56 +1,112 @@
-import {
-  useFuturePassAccountAddress,
-  useFutureverse,
-  useTrnApi,
-} from '@futureverse/react'
 import { Inter } from 'next/font/google'
 import { useCallback, useState } from 'react'
-import * as wagmi from 'wagmi'
-import * as fvSdk from '@futureverse/experience-sdk'
-import { useTrnBalances, useTrnExtrinsic } from '@/hooks'
+import * as Wagmi from 'wagmi'
+import * as sdk from '@futureverse/experience-sdk'
+import { UserSessionContext } from './providers/userSessionProvider'
+import * as React from 'react'
 
 const inter = Inter({ subsets: ['latin'] })
 
+const clientId = 'N8LvGuOdY5CeduNUGdUwB' // This is a test Client ID, preferably use your own
+const accessToken = '80rEBd2wrPkd4KZg33JQGFN0ILK-_bry5GWSjtadJJL' // This is a test /manageclients Access Token, preferably use your own
+const redirectUri = 'http://localhost:3000/callback' // Ensure this matches the redirect_uri defined on /manageclients
+const identityProviderUri = 'https://login.futureverse.dev' // .dev -> DEV, .cloud -> STAGING, .app -> PRODUCTION
+const authorizationEndpoint = `${identityProviderUri}/auth`
+const tokenEndpoint = `${identityProviderUri}/token`
+
+function parseJwt(token: string) {
+  const [header, payload, signature] = token.split('.')
+
+  if (!header || !payload) {
+    throw new Error('Invalid JWT token')
+  }
+
+  const decodedHeader = JSON.parse(base64UrlDecode(header))
+  const decodedPayload = JSON.parse(base64UrlDecode(payload))
+
+  return {
+    header: decodedHeader,
+    payload: decodedPayload,
+    signature,
+  }
+}
+
+function generateRandomString(length: number) {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+  let result = ''
+  for (let i = 0; i < length; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length))
+  }
+  return result
+}
+
+async function generateCodeVerifierAndChallenge() {
+  const codeVerifier = generateRandomString(128)
+  const buffer = new TextEncoder().encode(codeVerifier)
+  const hashed = await sha256(buffer)
+  const codeChallenge = base64UrlEncode(
+    String.fromCharCode(...new Uint8Array(hashed))
+  )
+  return { codeVerifier, codeChallenge }
+}
+
+function sha256(buffer: ArrayBuffer) {
+  return crypto.subtle.digest('SHA-256', buffer)
+}
+
+function base64UrlEncode(str: string) {
+  return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+}
+
+function base64UrlDecode(str: string) {
+  str = str.replace(/-/g, '+').replace(/_/g, '/')
+  const padding = '='.repeat((4 - (str.length % 4)) % 4)
+  const base64 = str + padding
+  return atob(base64)
+}
+
 export default function Home() {
-  const { login, logout, userSession } = useFutureverse()
-  const { data: futurePassAccount } = useFuturePassAccountAddress()
+  const { data: signer } = Wagmi.useSigner()
 
-  const { trnApi } = useTrnApi()
-  const trnBalances = useTrnBalances()
-  const { data: signer } = wagmi.useSigner()
+  const context = React.useContext(UserSessionContext)
 
-  const [payWithROOT, setPayWithROOT] = useState(false)
-  const [submitWithFuturePass, setSubmitWithFuturePass] = useState(false)
+  if (!context) {
+    throw new Error('useContext must be used within a UserSessionProvider')
+  }
 
-  const { signAndSubmitStep, submitExtrinsic, estimatedFee } = useTrnExtrinsic({
-    senderAddress:
-      submitWithFuturePass && futurePassAccount
-        ? futurePassAccount
-        : userSession?.eoa,
-    extrinsic: trnApi
-      ? trnApi.tx.system.remark('Hello, Futureverse!')
-      : undefined,
-    ...(payWithROOT && {
-      feeOptions: {
-        assetId: 1,
-      },
-    }),
-  })
+  const { userSession } = context
 
-  const [extrinsicResult, setExtrinsicResult] = useState<{
-    error?: string
-    extrinsicId?: string
-  }>()
+  const login = React.useCallback(async () => {
+    console.log('login func')
+    const { codeVerifier, codeChallenge } =
+      await generateCodeVerifierAndChallenge()
+    localStorage.setItem('code_verifier', codeVerifier)
 
-  const onSubmitClick = useCallback(async () => {
-    try {
-      const result = await submitExtrinsic()
+    const state = generateRandomString(16)
+    localStorage.setItem('state', state)
 
-      setExtrinsicResult({ extrinsicId: result.extrinsicId })
-    } catch (err: any) {
-      setExtrinsicResult({ error: err.message })
+    const nonce = generateRandomString(16)
+    localStorage.setItem('nonce', nonce)
+
+    const params = {
+      response_type: 'code',
+      client_id: clientId,
+      redirect_uri: redirectUri,
+      scope: 'openid',
+      code_challenge: codeChallenge,
+      code_challenge_method: 'S256',
+      response_mode: 'query',
+      prompt: 'login', // Use `none` to attempt silent authentication without prompting the user
+      login_hint: 'email:',
+      state,
+      nonce,
     }
-  }, [submitExtrinsic])
+
+    const queryString = new URLSearchParams(params).toString()
+    const url = `${authorizationEndpoint}?${queryString}`
+
+    window.location.href = url
+  }, [])
 
   return (
     <main
@@ -67,106 +123,15 @@ export default function Home() {
         </button>
       ) : (
         <div className="flex flex-col space-y-12">
-          <div className="flex flex-col space-y-4">
-            {extrinsicResult?.error && (
-              <p>Extrinsic error: {extrinsicResult.error}</p>
-            )}
-            {extrinsicResult?.extrinsicId && (
-              <p>
-                Explorer URL:{' '}
-                <a
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="cursor-pointer text-blue-500 hover:underline"
-                  href={`https://porcini.rootscan.io/extrinsics/${extrinsicResult.extrinsicId}`}
-                >
-                  {extrinsicResult.extrinsicId}
-                </a>
-              </p>
-            )}
-
-            {!extrinsicResult && signAndSubmitStep && (
-              <p>Sign and Submit step: {signAndSubmitStep}</p>
-            )}
-
-            {estimatedFee && (
-              <p>
-                Estimated fee:{' '}
-                {fvSdk.renderCryptoAmount(
-                  {
-                    value: estimatedFee,
-                    symbol: payWithROOT ? 'ROOT' : 'XRP',
-                    decimals: 6,
-                  },
-                  { withSymbol: true }
-                )}
-              </p>
-            )}
-            <div>
-              <ul className="[&>li]:flex [&>li]:cursor-pointer [&>li]:space-x-2">
-                <li onClick={() => setPayWithROOT(v => !v)}>
-                  <input
-                    type="checkbox"
-                    checked={payWithROOT}
-                    onChange={fvSdk.noOp}
-                  />
-                  <p>Pay with ROOT</p>
-                </li>
-                <li onClick={() => setSubmitWithFuturePass(v => !v)}>
-                  <input
-                    type="checkbox"
-                    checked={submitWithFuturePass}
-                    onChange={fvSdk.noOp}
-                  />
-                  <p>Submit via FuturePass account</p>
-                </li>
-              </ul>
-            </div>
-
-            <button
-              className="mt-2 rounded-sm border border-white px-4 py-2"
-              onClick={onSubmitClick}
-            >
-              Submit Extrinsic
-            </button>
-          </div>
-
           <div>
             <p>User EOA: {userSession.eoa}</p>
-            <p>User FuturePass: {futurePassAccount}</p>
+            <p>User FuturePass: {userSession.futurepass}</p>
             <p>User Chain ID: {userSession.chainId}</p>
-            <p>
-              User Balance:{' '}
-              {trnBalances?.root
-                ? fvSdk.renderCryptoAmount(
-                    {
-                      value: trnBalances.root,
-                      symbol: 'ROOT',
-                      decimals: 6,
-                    },
-                    { withSymbol: true }
-                  )
-                : 'loading'}
-            </p>
-            <p>
-              User Balance:{' '}
-              {trnBalances?.xrp
-                ? fvSdk.renderCryptoAmount(
-                    {
-                      value: trnBalances.xrp,
-                      symbol: 'XRP',
-                      decimals: 6,
-                    },
-                    { withSymbol: true }
-                  )
-                : 'loading'}
-            </p>
+
             <p>Signer: {signer?._isSigner ? `is available` : 'is undefined'}</p>
             <button
               className="mt-2 rounded-sm border border-white px-4 py-2"
-              onClick={() => {
-                logout()
-              }}
+              onClick={() => {}}
             >
               Log Out
             </button>

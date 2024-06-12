@@ -21,7 +21,7 @@ interface WagmiProviderProps {
   children: React.ReactNode
 }
 
-export const WagmiProvider = (props: WagmiProviderProps): JSX.Element => {
+const WagmiProvider = (props: WagmiProviderProps): JSX.Element => {
   const context = React.useContext(UserSessionContext)
 
   if (!context) {
@@ -113,3 +113,4 @@ export const WagmiProvider = (props: WagmiProviderProps): JSX.Element => {
     <Wagmi.WagmiConfig client={wagmiClient}>{props.children}</Wagmi.WagmiConfig>
   )
 }
+export default WagmiProvider

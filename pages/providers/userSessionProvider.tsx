@@ -16,7 +16,7 @@ interface UserSessionProviderProps {
   children: React.ReactNode
 }
 
-export const UserSessionProvider: React.FC<UserSessionProviderProps> = ({
+const UserSessionProvider: React.FC<UserSessionProviderProps> = ({
   children,
 }) => {
   const [userSession, setUserSession] = React.useState<UserSession | null>(null)
@@ -27,3 +27,5 @@ export const UserSessionProvider: React.FC<UserSessionProviderProps> = ({
     </UserSessionContext.Provider>
   )
 }
+
+export default UserSessionProvider

@@ -5,7 +5,7 @@ const nextConfig = {
   //   esmExternals: 'loose',
   //   fullySpecified: false,
   // },
-  // transpilePackages: ['@apollo/client'],
+  transpilePackages: ['@futureverse/experience-sdk'],
   // webpack: (config, options) => {
   //   config.resolve.extensions.push('.ts', '.tsx', '.js', '.jsx', '.json')
   //   config.module.rules.push({

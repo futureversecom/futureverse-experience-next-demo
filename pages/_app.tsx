@@ -55,6 +55,8 @@ export default function App({ Component, pageProps }: AppProps) {
       authClient={authClient}
       Web3Provider="wagmi"
       walletConnectProjectId={walletConnectProjectId}
+      isXamanLoginEnabled={true}
+      isCustodialLoginEnabled={true}
     >
       <TrnApiProvider>
         <Component {...pageProps} />

@@ -1,12 +1,12 @@
+import * as fvSdk from '@futureverse/experience-sdk'
 import {
   useAuthenticationMethod,
   useFuturePassAccountAddress,
   useTrnApi,
 } from '@futureverse/react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import * as fvSdk from '@futureverse/experience-sdk'
-import * as wagmi from 'wagmi'
 import { BigNumber } from 'ethers'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import * as wagmi from 'wagmi'
 
 export function useTrnExtrinsic({
   senderAddress,
@@ -73,7 +73,7 @@ export function useTrnExtrinsic({
           },
         },
         onSignatureSuccess:
-          authenticationMethod === 'xaman'
+          authenticationMethod?.method === 'xaman'
             ? () => {
                 setSignAndSubmitStep('submittingToChain')
               }

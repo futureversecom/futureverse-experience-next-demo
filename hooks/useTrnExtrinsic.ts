@@ -24,7 +24,13 @@ export function useTrnExtrinsic({
   const { data: futurePassAccount } = useFuturePassAccountAddress()
   const authenticationMethod = useAuthenticationMethod()
 
-  const { data: signer } = wagmi.useSigner()
+  const { signMessageAsync } = wagmi.useSignMessage()
+
+  // const [signer, setSigner]=React.useState<providers.JsonRpcSigner|null>(null)
+
+  // React.useEffect(()=>{
+  //   getEthersSigner().then(s=>setSigner(s))
+  // },[chainId])
 
   const [signAndSubmitStep, setSignAndSubmitStep] = useState<string>()
   // Optionally use this to display a QR code for XRPL user to scan
@@ -58,7 +64,7 @@ export function useTrnExtrinsic({
           slippage: feeOptions?.slippage ?? 0.05,
         },
         wagmiOptions: {
-          signer,
+          signMessageAsync: signMessageAsync as any,
         },
         xamanOptions: {
           signMessageCallbacks: {

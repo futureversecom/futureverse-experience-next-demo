@@ -17,7 +17,6 @@ export default function Home() {
 
   const { trnApi } = useTrnApi()
   const trnBalances = useTrnBalances()
-  const { data: signer } = wagmi.useSigner()
 
   const [payWithROOT, setPayWithROOT] = useState(false)
   const [submitWithFuturePass, setSubmitWithFuturePass] = useState(false)
@@ -161,7 +160,7 @@ export default function Home() {
                   )
                 : 'loading'}
             </p>
-            <p>Signer: {signer?._isSigner ? `is available` : 'is undefined'}</p>
+            {/* <p>Signer: {signer?._isSigner ? `is available` : 'is undefined'}</p> */}
             <button
               className="mt-2 rounded-sm border border-white px-4 py-2"
               onClick={() => {

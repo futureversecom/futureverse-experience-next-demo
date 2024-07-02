@@ -8,7 +8,7 @@ export const FV_AUTH_PREV_PATH_KEY = 'fvAuthPrevPath'
 
 export function useSignInHandler() {
   const { login, authClient } = useFutureverse()
-  const { address: accountAddress } = wagmi.useAccount()
+  // const { address: accountAddress } = wagmi.useAccount()
   const router = useRouter()
 
   React.useEffect(() => {
@@ -30,7 +30,7 @@ export function useSignInHandler() {
             ? {
                 loginMethod: {
                   type: 'silent',
-                  targetEOA: accountAddress ?? null,
+                  targetEOA: null,
                 },
               }
             : undefined
@@ -46,5 +46,5 @@ export function useSignInHandler() {
     return () => {
       authClient.removeUserStateListener(userStateChange)
     }
-  }, [accountAddress, authClient, login, router])
+  }, [ authClient, login, router])
 }
